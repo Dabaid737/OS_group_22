@@ -106,23 +106,34 @@ kern_init
 
 #### 问题一：指令 la sp, bootstacktop 完成了什么操作，目的是什么？
 
-前置代码和汇编指令解析：
+**前置代码和汇编指令解析：**
+
 在entry.S这个汇编文件中，有
+
 bootstack:
-    .space KSTACKSIZE
-    .global bootstacktop
+
+  .space KSTACKSIZE
+
+  .global bootstacktop
+
 bootstacktop:
+
 其中，bootstack、bootstacktop均为标号，代表了两个地址，.space是汇编器指令，用于在汇编后链接前预留出一片KSTACKSIZE字节长的区域，KSTACKSIZE在memlayout.h和mmu.h两个头文件中宏定义，具体计算为内存栈的页数*页大小(2*4096=8192)。.global也是汇编器指令，它把符号 bootstacktop 声明成一个全局符号，让链接器和其他目标文件能够看到这个标号。这一段代码在内存上划分了一片大小8192字节的栈区域供内核使用，并把栈顶地址存在bootstacktop这一全局标号中。
 
 指令la是一个伪指令，即"load address"的缩写，具体操作是读取右操作数的地址，并把读取到的地址存在左操作数里。 la sp, bootstacktop就是将刚刚划分的栈的栈顶地址加载给sp栈指针寄存器。
-该操作的目的是：
+
+**该操作的目的是：**
+
 未执行这一指令前，栈指针寄存器中保存的仍是上一启动阶段留下来的值（固件OpenSBI使用的栈区域），而未来进入操作系统内核，不再使用汇编语言后，C语言编写的函数工作通常就都需要栈了，例如函数可能要保存返回地址等等。这时就需要提供一片内核能够直接控制的栈区域。由于栈是由高地址到低地址的，这时我们让sp栈指针指向bootstacktop所存的地址，那么从bootstack标号对应的地址到bootstacktop标号对应地址之间提前预留好的区域，便可作为内核可操控的栈区域使用了。
 
 #### 问题二：指令 tail kern_init 完成了什么操作，目的是什么？
 
-指令及调用的对应函数解析：
+**指令及调用的对应函数解析：**
+
 指令tail是一个伪指令，即尾调用（AI给出的名词），通常意义上的call需要在寄存器ra中保留一个返回的地址，而尾调用不保留返回地址，PC只jump过去，不再回到entry.S；kern_init 是定义在init.c中的函数，在本次实验中kern_init中调用了用户自己编写的"memset"，用于清除bss数据段，还调用了我们通过SBI调用编写的cprintf函数，输出(THU.CST) os is loading ...字样，最终进入死循环
-该操作的目的是：
+
+**该操作的目的是：**
+
 在la sp，bootstacktop指令后，计算机完成了对操作系统内核栈的初始化，准备将操作权转让给操作系统内核；kern_init正是操作系统内核的入口点，这里操作系统与用户第一次进行交互，输出了os is loading的字样，未来的功能都由这里开始继续实现。
 
 
