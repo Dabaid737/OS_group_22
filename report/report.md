@@ -124,7 +124,7 @@ bootstacktop:
 指令tail是一个伪指令，即尾调用（AI给出的名词），通常意义上的call需要在寄存器ra中保留一个返回的地址，而尾调用不保留返回地址，PC只jump过去，不再回到entry.S；kern_init 是定义在init.c中的函数，在本次实验中kern_init中调用了用户自己编写的"memset"，用于清除bss数据段，还调用了我们通过SBI调用编写的cprintf函数，输出(THU.CST) os is loading ...字样，最终进入死循环
 该操作的目的是：
 在la sp，bootstacktop指令后，计算机完成了对操作系统内核栈的初始化，准备将操作权转让给操作系统内核；kern_init正是操作系统内核的入口点，这里操作系统与用户第一次进行交互，输出了os is loading的字样，未来的功能都由这里开始继续实现。
----
+
 
 ### 练习：[练习二]
 
